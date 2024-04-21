@@ -1,33 +1,49 @@
 #include "topsort.h"
 #include <iostream>
-#include <vector>
 
-void Dfs(int v, std::vector<bool>& visited, std::vector<std::vector<int>>& matrix, Stack& answer){
+void Dfs(int v, std::vector<bool>& visited, std::vector<std::vector<int>>& matrix, PairStack& dfs, IntStack& postOrder){
 
-    visited[v] = true;
-
-    for(int i : matrix[v]){
+    for(int i = 0 ; i <= v; i++){
         if(!visited[i]){
-            Dfs(i, visited, matrix, answer);
+            dfs.push(std::make_pair(false,i));
+        }
+        while(!dfs.isEmpty()){
+            std::pair<bool,int> node = dfs.peek();
+            dfs.pop();
+            if (node.first) {
+                postOrder.push(node.second);
+                continue;
+            }
+            if (visited[node.second]) {
+                continue;
+            }
+            visited[node.second]=true;
+            dfs.push(std::make_pair(true, node.second));
+            const auto& newVec = matrix[node.second];
+            for(const auto son: newVec){
+                if(!visited[son]){
+                    dfs.push(std::make_pair(false, son));
+                }
+            }
         }
     }
 
-    answer.push(v);
 }
 
 void TopSort(int v, std::vector<bool>& visited, std::vector<std::vector<int>>& matrix, int Vertex){
 
-    Stack answer;
+    PairStack dfs;
+    IntStack postOrder;
 
     visited.assign(Vertex, false);
     for(int i = 0; i < v; i++){
         if(!visited[i]){
-            Dfs(i, visited, matrix, answer);
+            Dfs(i, visited, matrix, dfs, postOrder);
         }
     }
 
-    while(!answer.isEmpty()){
-        std::cout << answer.peek() << " ";
-        answer.pop();
+    while(!postOrder.isEmpty()){
+        std::cout << postOrder.peek() << " ";
+        postOrder.pop();
     }
 }
